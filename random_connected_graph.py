@@ -88,7 +88,7 @@ def naive(nodes, num_edges, loops=False, multigraph=False, digraph=False):
         while len(edges) < num_edges:
             # Generate a random edge.
             edge = random_edge()
-            if not digraph and edge[1] > edge[0]:
+            if not digraph and edge[1] < edge[0]:
                 # If undirected, sort order of nodes in the edge
                 edge = edge[1], edge[0]
             # Update the component list.

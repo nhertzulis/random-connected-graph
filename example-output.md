@@ -160,11 +160,11 @@ Minimum number of edges
 20 edges
 --------
 
-`python random_connected_graph.py -p -g names.gml names.txt`
+`python random_connected_graph.py -p -e 20 -g names.gml names.txt`
 
 ### Image from GML
 
-![names with 20 edges](http://s8.postimage.org/4sq7wkg11/names_20.png)
+![names with 20 edges](http://s1.postimage.org/5lggangf3/names_20.png)
 
 Generate nodes
 --------------
