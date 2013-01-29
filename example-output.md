@@ -164,7 +164,7 @@ Minimum number of edges
 
 ### Image from GML
 
-![names with 20 edges](http://s1.postimage.org/5lggangf3/names_20.png)
+![names with 20 edges](http://s9.postimage.org/sdhvbi8qn/names_20.png)
 
 Generate nodes
 --------------

@@ -167,6 +167,9 @@ def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
         else:
             # Without replacement.
             edge = tuple(random.sample(nodes, 2))
+        if not digraph and edge[1] < edge[0]:
+            # If undirected, sort order of nodes in the edge
+            edge = edge[1], edge[0]
         # Add the edge if the graph type allows it.
         if multigraph or edge not in edge_set:
             edges.append(edge)
