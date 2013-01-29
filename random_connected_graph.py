@@ -14,6 +14,12 @@ class Graph(object):
         self.edges = edges
         self.digraph = digraph
 
+    def sort_edges(self):
+        """If undirected, sort order that the nodes are listed in the edge."""
+        if not self.digraph:
+            self.edges = [((t, s) if t < s else (s, t)) for s, t in self.edges]
+        self.edges.sort()
+
     def generate_gml(self):
         # Inspiration:
         # http://networkx.lanl.gov/_modules/networkx/readwrite/gml.html#generate_gml
@@ -88,9 +94,6 @@ def naive(nodes, num_edges, loops=False, multigraph=False, digraph=False):
         while len(edges) < num_edges:
             # Generate a random edge.
             edge = random_edge()
-            if not digraph and edge[1] < edge[0]:
-                # If undirected, sort order of nodes in the edge
-                edge = edge[1], edge[0]
             # Update the component list.
             comp_index = [None] * 2
             for index, comp in enumerate(components):
@@ -144,11 +147,7 @@ def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
         # Select random node from S, and another in T.
         node_s, node_t = random.sample(S, 1).pop(), random.sample(T, 1).pop()
         # Create an edge between the nodes, and move the node from S to T.
-        if digraph or node_s < node_t:
-            # If undirected, sort order of nodes in the edge
-            edge = (node_s, node_t)
-        else:
-            edge = (node_t, node_s)
+        edge = (node_s, node_t)
         S.remove(node_s)
         T.add(node_s)
         # Add the edge if the graph type allows it.
@@ -167,9 +166,6 @@ def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
         else:
             # Without replacement.
             edge = tuple(random.sample(nodes, 2))
-        if not digraph and edge[1] < edge[0]:
-            # If undirected, sort order of nodes in the edge
-            edge = edge[1], edge[0]
         # Add the edge if the graph type allows it.
         if multigraph or edge not in edge_set:
             edges.append(edge)
@@ -230,10 +226,11 @@ if __name__ == '__main__':
                      args.digraph)
 
     # Display
+    graph.sort_edges()
     if args.pretty:
-        pprint(sorted(graph.edges))
+        pprint(graph.edges)
     else:
-        print(sorted(graph.edges))
+        print(graph.edges)
 
     # Save to GML
     if args.gml:
