@@ -1,7 +1,7 @@
 # Copyright (C) 2013 Brian Wesley Baugh
 # CSCE 6933: Social Network Analysis
 # Created: January 22, 2013
-# Updated: January, 28, 2013
+# Updated: January 30, 2013
 """Generate a randomly connected graph with N nodes and E edges."""
 import random
 import argparse
@@ -9,10 +9,44 @@ from pprint import pprint
 
 
 class Graph(object):
-    def __init__(self, nodes, edges=[], digraph=False):
+    def __init__(self, nodes, edges=None, loops=False, multigraph=False,
+                 digraph=False):
         self.nodes = nodes
-        self.edges = edges
+        if edges:
+            self.edges = edges
+            self.edge_set = self._compute_edge_set()
+        else:
+            self.edges = []
+            self.edge_set = set()
+        self.loops = loops
+        self.multigraph = multigraph
         self.digraph = digraph
+
+    def _compute_edge_set(self):
+        raise NotImplementedError()
+
+    def add_edge(self, edge):
+        """Add the edge if the graph type allows it."""
+        if self.multigraph or edge not in self.edge_set:
+            self.edges.append(edge)
+            self.edge_set.add(edge)
+            if not self.digraph:
+                self.edge_set.add(edge[::-1])  # add other direction to set.
+
+    def make_random_edge(self):
+        """Generate a random edge between any two nodes in the graph."""
+        if self.loops:
+            # With replacement.
+            random_edge = (random.choice(self.nodes), random.choice(self.nodes))
+        else:
+            # Without replacement.
+            random_edge = tuple(random.sample(self.nodes, 2))
+        return random_edge
+
+    def add_random_edges(self, total_edges):
+        """Add random edges until the number of desired edges is reached."""
+        while len(self.edges) < total_edges:
+            self.add_edge(self.make_random_edge())
 
     def sort_edges(self):
         """If undirected, sort order that the nodes are listed in the edge."""
@@ -79,21 +113,14 @@ def naive(nodes, num_edges, loops=False, multigraph=False, digraph=False):
 
     check_num_edges(nodes, num_edges, loops, multigraph, digraph)
 
-    edges, edge_set = [], set()
-
-    if loops:
-        # With replacement.
-        random_edge = lambda: (random.choice(nodes), random.choice(nodes))
-    else:
-        # Without replacement.
-        random_edge = lambda: tuple(random.sample(nodes, 2))
-
-    while True:
+    finished = False
+    while not finished:
+        graph = Graph(nodes, loops=loops, multigraph=multigraph, digraph=digraph)
         # Start with each node in its own component.
         components = [set([x]) for x in nodes]
-        while len(edges) < num_edges:
+        while len(graph.edges) < num_edges:
             # Generate a random edge.
-            edge = random_edge()
+            edge = graph.make_random_edge()
             # Update the component list.
             comp_index = [None] * 2
             for index, comp in enumerate(components):
@@ -103,23 +130,15 @@ def naive(nodes, num_edges, loops=False, multigraph=False, digraph=False):
                 # Break early once we have found both sets.
                 if all(x is not None for x in comp_index):
                     break
-            assert all(x is not None for x in comp_index)
             # Combine components if the nodes aren't already in the same one.
             if comp_index[0] != comp_index[1]:
                 components[comp_index[0]] |= components[comp_index[1]]
                 del components[comp_index[1]]
-            # Add the edge if the graph type allows it.
-            if multigraph or edge not in edge_set:
-                edges.append(edge)
-                edge_set.add(edge)
-                if not digraph:
-                    edge_set.add(edge[::-1])  # add other direction to set.
+            graph.add_edge(edge)
         if len(components) == 1:
-            break
-        else:
-            edges[:], edge_set = [], set()
+            finished = True
 
-    return Graph(nodes, edges, digraph)
+    return graph
 
 
 def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
@@ -132,7 +151,7 @@ def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
 
     check_num_edges(nodes, num_edges, loops, multigraph, digraph)
 
-    edges, edge_set = [], set()
+    graph = Graph(nodes, loops=loops, multigraph=multigraph, digraph=digraph)
 
     # Create two partitions, S and T. Initially store all nodes in S.
     S, T = set(nodes), set()
@@ -151,29 +170,30 @@ def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
         S.remove(node_s)
         T.add(node_s)
         # Add the edge if the graph type allows it.
-        if multigraph or edge not in edge_set:
-            edges.append(edge)
-            edge_set.add(edge)
-            if not digraph:
-                edge_set.add(edge[::-1])  # add other direction to set.
+        graph.add_edge(edge)
 
     # Add random edges until the number of desired edges is reached.
-    while len(edges) < num_edges:
-        # Randomly select two nodes (in T, which is all), and create an edge.
-        if loops:
-            # With replacement.
-            edge = random.choice(nodes), random.choice(nodes)
-        else:
-            # Without replacement.
-            edge = tuple(random.sample(nodes, 2))
-        # Add the edge if the graph type allows it.
-        if multigraph or edge not in edge_set:
-            edges.append(edge)
-            edge_set.add(edge)
-            if not digraph:
-                edge_set.add(edge[::-1])  # add other direction to set.
+    graph.add_random_edges(num_edges)
 
-    return Graph(nodes, edges, digraph)
+    return graph
+
+
+def wilsons_alg(nodes, num_edges, loops=False, multigraph=False, digraph=False):
+    # Algorithm inspiration:
+    # https://en.wikipedia.org/wiki/Uniform_spanning_tree#The_uniform_spanning_tree
+
+    # Idea:
+    # Create a uniform spanning tree (UST) using Wilson's algorithm:
+    #     Start with two random vertices.
+    #     Perform a (loop-erased) random walk between the two nodes.
+    #     While there are still nodes not in the tree:
+    #         Pick a random node not in the tree.
+    #         Perform a random walk from this node until hitting the tree.
+    # Add random edges until the number of desired edges is reached.
+
+    check_num_edges(nodes, num_edges, loops, multigraph, digraph)
+
+    raise NotImplementedError()
 
 
 if __name__ == '__main__':
