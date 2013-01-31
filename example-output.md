@@ -8,21 +8,21 @@ Minimum number of edges
 
 ### Console
 
-    [('Anil', 'Patrick'),
-     ('Anil', 'Siamak'),
-     ('Bandita', 'Siamak'),
-     ('Brendan', 'Yi'),
-     ('Chengyuan', 'Keshavan'),
-     ('Karthik', 'Siamak'),
-     ('Keshavan', 'Siamak'),
+    [('Anil', 'Rohith'),
+     ('Anil', 'Wesley'),
+     ('Bandita', 'Saratchandra'),
+     ('Brendan', 'Vibha'),
+     ('Chengyuan', 'Karthik'),
+     ('Karthik', 'Patrick'),
+     ('Karthik', 'Yi'),
      ('Keshavan', 'Wesley'),
-     ('Rohith', 'Wesley'),
+     ('Patrick', 'Siamak'),
+     ('Patrick', 'Vibha'),
+     ('Rohith', 'Saratchandra'),
+     ('Samuel', 'Saratchandra'),
      ('Samuel', 'Shibamouli'),
-     ('Samuel', 'Siamak'),
-     ('Samuel', 'Yi'),
-     ('Saratchandra', 'Wesley'),
-     ('Shibamouli', 'Vibha'),
-     ('Siamak', 'Siddanth')]
+     ('Siamak', 'Siddanth'),
+     ('Siamak', 'Wesley')]
 
 ### GML file
 
@@ -93,69 +93,69 @@ Minimum number of edges
         ]
         edge [
             source 0
-            target 11
-        ]
-        edge [
-            source 8
-            target 11
-        ]
-        edge [
-            source 5
-            target 11
-        ]
-        edge [
-            source 4
-            target 11
-        ]
-        edge [
-            source 1
-            target 11
-        ]
-        edge [
-            source 5
-            target 14
-        ]
-        edge [
-            source 7
-            target 14
+            target 7
         ]
         edge [
             source 0
-            target 6
+            target 14
+        ]
+        edge [
+            source 1
+            target 9
+        ]
+        edge [
+            source 2
+            target 13
         ]
         edge [
             source 3
-            target 5
+            target 4
         ]
         edge [
-            source 9
+            source 4
+            target 6
+        ]
+        edge [
+            source 4
+            target 15
+        ]
+        edge [
+            source 5
             target 14
+        ]
+        edge [
+            source 6
+            target 11
+        ]
+        edge [
+            source 6
+            target 13
+        ]
+        edge [
+            source 7
+            target 9
+        ]
+        edge [
+            source 8
+            target 9
         ]
         edge [
             source 8
             target 10
         ]
         edge [
-            source 8
-            target 15
-        ]
-        edge [
-            source 2
-            target 15
-        ]
-        edge [
             source 11
             target 12
         ]
         edge [
-            source 10
-            target 13
+            source 11
+            target 14
         ]
     ]
 
 ### Image from GML
 
-![names with minimum number of edges](http://s8.postimage.org/4gqe0u61x/names.png)
+![names with minimum number of edges](http://s3.postimage.org/ps02l9yj7/names.png)
 
 20 edges
 --------
@@ -164,25 +164,25 @@ Minimum number of edges
 
 ### Image from GML
 
-![names with 20 edges](http://s9.postimage.org/sdhvbi8qn/names_20.png)
+![names with 20 edges](http://s14.postimage.org/i2sj3aujl/names_20.png)
 
 Generate nodes
 --------------
 
 `python random_connected_graph.py -p 16`
 
-    [(0, 7),
-     (0, 8),
-     (1, 2),
+    [(0, 6),
+     (0, 10),
      (1, 4),
-     (1, 12),
-     (3, 9),
-     (3, 10),
-     (3, 12),
-     (4, 6),
+     (1, 9),
+     (2, 4),
+     (2, 11),
+     (3, 6),
+     (3, 8),
+     (4, 8),
      (5, 8),
-     (5, 12),
-     (6, 13),
+     (5, 15),
      (7, 11),
-     (12, 14),
+     (10, 12),
+     (13, 15),
      (14, 15)]
