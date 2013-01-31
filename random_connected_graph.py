@@ -115,6 +115,21 @@ def naive(nodes, num_edges, loops=False, multigraph=False, digraph=False):
 
     check_num_edges(nodes, num_edges, loops, multigraph, digraph)
 
+    def update_components(components, edge):
+        # Update the component list.
+        comp_index = [None] * 2
+        for index, comp in enumerate(components):
+            for i in (0, 1):
+                if edge[i] in comp:
+                    comp_index[i] = index
+            # Break early once we have found both sets.
+            if all(x is not None for x in comp_index):
+                break
+        # Combine components if the nodes aren't already in the same one.
+        if comp_index[0] != comp_index[1]:
+            components[comp_index[0]] |= components[comp_index[1]]
+            del components[comp_index[1]]
+
     finished = False
     while not finished:
         graph = Graph(nodes, loops=loops, multigraph=multigraph, digraph=digraph)
@@ -123,32 +138,22 @@ def naive(nodes, num_edges, loops=False, multigraph=False, digraph=False):
         while len(graph.edges) < num_edges:
             # Generate a random edge.
             edge = graph.make_random_edge()
-            # Update the component list.
-            comp_index = [None] * 2
-            for index, comp in enumerate(components):
-                for i in (0, 1):
-                    if edge[i] in comp:
-                        comp_index[i] = index
-                # Break early once we have found both sets.
-                if all(x is not None for x in comp_index):
-                    break
-            # Combine components if the nodes aren't already in the same one.
-            if comp_index[0] != comp_index[1]:
-                components[comp_index[0]] |= components[comp_index[1]]
-                del components[comp_index[1]]
-            graph.add_edge(edge)
+            if graph.add_edge(edge):
+                # Update the component list.
+                update_components(components, edge)
         if len(components) == 1:
             finished = True
 
     return graph
 
 
-def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
+def partition(nodes, num_edges, loops=False, multigraph=False, digraph=False):
     # Algorithm inspiration:
     # http://stackoverflow.com/questions/2041517/random-simple-connected-graph-generation-with-given-sparseness
 
     # Idea:
-    # Create a random connected graph.
+    # Create a random connected graph by adding edges between nodes from
+    # different partitions.
     # Add random edges until the number of desired edges is reached.
 
     check_num_edges(nodes, num_edges, loops, multigraph, digraph)
@@ -179,7 +184,47 @@ def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
     return graph
 
 
-def wilsons_alg(nodes, num_edges, loops=False, multigraph=False, digraph=False):
+def random_walk(nodes, num_edges, loops=False, multigraph=False, digraph=False):
+    # Algorithm inspiration:
+    # https://en.wikipedia.org/wiki/Uniform_spanning_tree#The_uniform_spanning_tree
+
+    # Idea:
+    # Create a uniform spanning tree (UST) using a random walk.
+    # Add random edges until the number of desired edges is reached.
+
+    check_num_edges(nodes, num_edges, loops, multigraph, digraph)
+
+    # Create two partitions, S and T. Initially store all nodes in S.
+    S, T = set(nodes), set()
+
+    # Pick a random node, and mark it as visited and the current node.
+    current_node = random.sample(S, 1).pop()
+    S.remove(current_node)
+    T.add(current_node)
+
+    graph = Graph(nodes, loops=loops, multigraph=multigraph, digraph=digraph)
+
+    # Create a random connected graph.
+    while S:
+        # Randomly pick the next node from the neighbors of the current node.
+        # As we are generating a connected graph, we assume a complete graph.
+        neighbor_node = random.sample(nodes, 1).pop()
+        # If the new node hasn't been visited, add the edge from current to new.
+        if neighbor_node not in T:
+            edge = (current_node, neighbor_node)
+            graph.add_edge(edge)
+            S.remove(neighbor_node)
+            T.add(neighbor_node)
+        # Set the new node as the current node.
+        current_node = neighbor_node
+
+    # Add random edges until the number of desired edges is reached.
+    graph.add_random_edges(num_edges)
+
+    return graph
+
+
+def wilsons_algo(nodes, num_edges, loops=False, multigraph=False, digraph=False):
     # Algorithm inspiration:
     # https://en.wikipedia.org/wiki/Uniform_spanning_tree#The_uniform_spanning_tree
 
@@ -194,6 +239,8 @@ def wilsons_alg(nodes, num_edges, loops=False, multigraph=False, digraph=False):
 
     check_num_edges(nodes, num_edges, loops, multigraph, digraph)
 
+    graph = Graph(nodes, loops=loops, multigraph=multigraph, digraph=digraph)
+
     raise NotImplementedError()
 
 
@@ -205,17 +252,29 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--edges', type=int,
                         help='number of edges (default is minimum possible)')
     parser.add_argument('-l', '--loops', action='store_true',
-                        help="allow self-loop edges")
+                        help='allow self-loop edges')
     parser.add_argument('-m', '--multigraph', action='store_true',
-                        help="allow parallel edges between nodes")
+                        help='allow parallel edges between nodes')
     parser.add_argument('-d', '--digraph', action='store_true',
-                        help="make edges unidirectional")
-    parser.add_argument('-n', '--naive', action='store_true',
-                        help="use a naive generation algorithm (slower)")
+                        help='make edges unidirectional')
+    parser.add_argument('-w', '--wilson', action='store_const',
+                        const='wilsons_algo', dest='approach',
+                        help="use wilson's generation algorithm (best)")
+    parser.add_argument('-r', '--random-walk', action='store_const',
+                        const='random_walk', dest='approach',
+                        help='use a random-walk generation algorithm (default)')
+    parser.add_argument('-n', '--naive', action='store_const',
+                        const='naive', dest='approach',
+                        help='use a naive generation algorithm (slower)')
+    parser.add_argument('-t', '--partition', action='store_const',
+                        const='partition', dest='approach',
+                        help='use a partition-based generation algorithm (biased)')
+    parser.add_argument('--no-output', action='store_true',
+                        help='do not display any output')
     parser.add_argument('-p', '--pretty', action='store_true',
-                        help="print large graphs with each edge on a new line")
+                        help='print large graphs with each edge on a new line')
     parser.add_argument('-g', '--gml',
-                        help="filename to save the graph to in GML format")
+                        help='filename to save the graph to in GML format')
     args = parser.parse_args()
 
     # Nodes
@@ -237,21 +296,23 @@ if __name__ == '__main__':
         num_edges = args.edges
 
     # Approach
-    if args.naive:
-        approach = naive
+    if args.approach:
+        print 'Setting approach:', args.approach
+        approach = locals()[args.approach]
     else:
-        approach = better
+        approach = random_walk
 
     # Run
     graph = approach(nodes, num_edges, args.loops, args.multigraph,
                      args.digraph)
 
     # Display
-    graph.sort_edges()
-    if args.pretty:
-        pprint(graph.edges)
-    else:
-        print(graph.edges)
+    if not args.no_output:
+        graph.sort_edges()
+        if args.pretty:
+            pprint(graph.edges)
+        else:
+            print(graph.edges)
 
     # Save to GML
     if args.gml:
