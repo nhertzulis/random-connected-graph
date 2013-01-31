@@ -32,6 +32,8 @@ class Graph(object):
             self.edge_set.add(edge)
             if not self.digraph:
                 self.edge_set.add(edge[::-1])  # add other direction to set.
+            return True
+        return False
 
     def make_random_edge(self):
         """Generate a random edge between any two nodes in the graph."""
@@ -167,10 +169,9 @@ def better(nodes, num_edges, loops=False, multigraph=False, digraph=False):
         node_s, node_t = random.sample(S, 1).pop(), random.sample(T, 1).pop()
         # Create an edge between the nodes, and move the node from S to T.
         edge = (node_s, node_t)
+        assert graph.add_edge(edge) == True
         S.remove(node_s)
         T.add(node_s)
-        # Add the edge if the graph type allows it.
-        graph.add_edge(edge)
 
     # Add random edges until the number of desired edges is reached.
     graph.add_random_edges(num_edges)
